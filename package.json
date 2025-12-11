@@ -25,6 +25,7 @@
     "@tanstack/react-table": "^8.19.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "@contentstack/delivery-sdk": "^4.10.3",
     "contentstack": "^3.26.2",
     "date-fns": "^3.6.0",
     "firebase": "^12.6.0",
