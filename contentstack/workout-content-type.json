@@ -1,0 +1,358 @@
+{
+  "content_type": {
+    "title": "Workout",
+    "uid": "workout",
+    "schema": [
+      {
+        "display_name": "Title",
+        "uid": "title",
+        "data_type": "text",
+        "mandatory": true,
+        "field_metadata": {
+          "default_value": "",
+          "description": "The name of the workout"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Description",
+        "uid": "description",
+        "data_type": "text",
+        "mandatory": true,
+        "field_metadata": {
+          "default_value": "",
+          "description": "Detailed description of the workout"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Difficulty Level",
+        "uid": "difficulty",
+        "data_type": "select",
+        "mandatory": true,
+        "field_metadata": {
+          "options": [
+            {
+              "value": "beginner",
+              "label": "Beginner"
+            },
+            {
+              "value": "intermediate",
+              "label": "Intermediate"
+            },
+            {
+              "value": "advanced",
+              "label": "Advanced"
+            }
+          ],
+          "description": "The difficulty level of the workout"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Duration (minutes)",
+        "uid": "duration",
+        "data_type": "number",
+        "mandatory": true,
+        "field_metadata": {
+          "default_value": 30,
+          "description": "Workout duration in minutes"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Calories Burned",
+        "uid": "calories",
+        "data_type": "number",
+        "mandatory": true,
+        "field_metadata": {
+          "default_value": 200,
+          "description": "Estimated calories burned during this workout"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Thumbnail Image",
+        "uid": "thumbnail_url",
+        "data_type": "file",
+        "mandatory": true,
+        "field_metadata": {
+          "description": "Thumbnail image for the workout card"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Video URL",
+        "uid": "video_url",
+        "data_type": "text",
+        "mandatory": false,
+        "field_metadata": {
+          "default_value": "",
+          "description": "Optional video URL demonstrating the workout"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Muscle Groups",
+        "uid": "muscle_groups",
+        "data_type": "select",
+        "mandatory": true,
+        "field_metadata": {
+          "options": [
+            {
+              "value": "chest",
+              "label": "Chest"
+            },
+            {
+              "value": "back",
+              "label": "Back"
+            },
+            {
+              "value": "shoulders",
+              "label": "Shoulders"
+            },
+            {
+              "value": "arms",
+              "label": "Arms"
+            },
+            {
+              "value": "core",
+              "label": "Core"
+            },
+            {
+              "value": "legs",
+              "label": "Legs"
+            },
+            {
+              "value": "glutes",
+              "label": "Glutes"
+            },
+            {
+              "value": "full-body",
+              "label": "Full Body"
+            },
+            {
+              "value": "cardio",
+              "label": "Cardio"
+            }
+          ],
+          "description": "Muscle groups targeted by this workout"
+        },
+        "unique": false,
+        "multiple": true
+      },
+      {
+        "display_name": "Equipment Required",
+        "uid": "equipment",
+        "data_type": "select",
+        "mandatory": true,
+        "field_metadata": {
+          "options": [
+            {
+              "value": "none",
+              "label": "No Equipment"
+            },
+            {
+              "value": "dumbbells",
+              "label": "Dumbbells"
+            },
+            {
+              "value": "barbell",
+              "label": "Barbell"
+            },
+            {
+              "value": "kettlebell",
+              "label": "Kettlebell"
+            },
+            {
+              "value": "resistance-bands",
+              "label": "Resistance Bands"
+            },
+            {
+              "value": "pull-up-bar",
+              "label": "Pull-up Bar"
+            },
+            {
+              "value": "bench",
+              "label": "Bench"
+            },
+            {
+              "value": "cable-machine",
+              "label": "Cable Machine"
+            },
+            {
+              "value": "treadmill",
+              "label": "Treadmill"
+            },
+            {
+              "value": "bike",
+              "label": "Bike"
+            }
+          ],
+          "description": "Equipment needed for this workout"
+        },
+        "unique": false,
+        "multiple": true
+      },
+      {
+        "display_name": "Tags",
+        "uid": "tags",
+        "data_type": "text",
+        "mandatory": false,
+        "field_metadata": {
+          "default_value": "",
+          "description": "Comma-separated tags for search and filtering (e.g., hiit, fat-burning, no-equipment)"
+        },
+        "unique": false,
+        "multiple": true
+      },
+      {
+        "display_name": "Exercises",
+        "uid": "exercises",
+        "data_type": "group",
+        "mandatory": true,
+        "field_metadata": {
+          "description": "List of exercises in this workout"
+        },
+        "schema": [
+          {
+            "display_name": "Exercise Name",
+            "uid": "name",
+            "data_type": "text",
+            "mandatory": true,
+            "field_metadata": {
+              "description": "Name of the exercise"
+            },
+            "unique": false,
+            "multiple": false
+          },
+          {
+            "display_name": "Sets",
+            "uid": "sets",
+            "data_type": "number",
+            "mandatory": true,
+            "field_metadata": {
+              "default_value": 3,
+              "description": "Number of sets"
+            },
+            "unique": false,
+            "multiple": false
+          },
+          {
+            "display_name": "Reps",
+            "uid": "reps",
+            "data_type": "text",
+            "mandatory": true,
+            "field_metadata": {
+              "default_value": "12",
+              "description": "Repetitions (e.g., '12', '12-15', '30 sec')"
+            },
+            "unique": false,
+            "multiple": false
+          },
+          {
+            "display_name": "Rest (seconds)",
+            "uid": "rest_seconds",
+            "data_type": "number",
+            "mandatory": true,
+            "field_metadata": {
+              "default_value": 30,
+              "description": "Rest time between sets in seconds"
+            },
+            "unique": false,
+            "multiple": false
+          },
+          {
+            "display_name": "Notes",
+            "uid": "notes",
+            "data_type": "text",
+            "mandatory": false,
+            "field_metadata": {
+              "description": "Additional notes or tips for this exercise"
+            },
+            "unique": false,
+            "multiple": false
+          },
+          {
+            "display_name": "Exercise Video URL",
+            "uid": "video_url",
+            "data_type": "text",
+            "mandatory": false,
+            "field_metadata": {
+              "description": "Optional video URL for this specific exercise"
+            },
+            "unique": false,
+            "multiple": false
+          }
+        ],
+        "unique": false,
+        "multiple": true
+      },
+      {
+        "display_name": "SEO Title",
+        "uid": "seo_title",
+        "data_type": "text",
+        "mandatory": false,
+        "field_metadata": {
+          "description": "SEO-friendly title"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "SEO Description",
+        "uid": "seo_description",
+        "data_type": "text",
+        "mandatory": false,
+        "field_metadata": {
+          "description": "SEO meta description"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Featured",
+        "uid": "featured",
+        "data_type": "boolean",
+        "mandatory": false,
+        "field_metadata": {
+          "default_value": false,
+          "description": "Mark as featured workout"
+        },
+        "unique": false,
+        "multiple": false
+      },
+      {
+        "display_name": "Published Date",
+        "uid": "published_date",
+        "data_type": "date",
+        "mandatory": false,
+        "field_metadata": {
+          "description": "Date when workout was published"
+        },
+        "unique": false,
+        "multiple": false
+      }
+    ],
+    "options": {
+      "is_page": false,
+      "singleton": false,
+      "sub_title": [
+        "title"
+      ],
+      "title": "title",
+      "publishable": true,
+      "is_composite": false,
+      "description": "Workout content type for fitness planner app"
+    },
+    "last_activity": {}
+  }
+}
+
