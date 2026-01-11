@@ -27,6 +27,7 @@ import { useEffect, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { getWorkout } from "@/cms/client";
 import { Workout } from "@/cms/types";
+import { getAllSupplements, Supplement } from "@/lib/contentstack";
 
 export default function PostWorkoutPage() {
   const params = useParams();
@@ -34,11 +35,28 @@ export default function PostWorkoutPage() {
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [showConfetti, setShowConfetti] = useState(true);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [supplements, setSupplements] = useState<Supplement[]>([]);
 
-  // Get a relevant product placement for post-workout
-  const placement = productPlacements.find(
-    (p) => p.placementLocation === "post-workout" && p.isActive
-  );
+  // Fetch supplements from Contentstack
+  useEffect(() => {
+    const fetchSupplements = async () => {
+      const fetchedSupplements = await getAllSupplements();
+      // Filter for active supplements and limit to post-workout relevant ones
+      const activeSupplements = fetchedSupplements
+        .filter((s) => s.isActive !== false)
+        .slice(0, 3); // Show up to 3 supplements
+      setSupplements(activeSupplements);
+    };
+    fetchSupplements();
+  }, []);
+
+  // Fallback to static product placement if no supplements
+  const placement =
+    supplements.length > 0
+      ? null
+      : productPlacements.find(
+          (p) => p.placementLocation === "post-workout" && p.isActive
+        );
 
   useEffect(() => {
     setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -54,11 +72,12 @@ export default function PostWorkoutPage() {
       try {
         // Try to fetch from Contentstack first, fallback to local data
         const fetchedWorkout = await getWorkout(params.id);
-        const workoutData = fetchedWorkout || workouts.find((w) => w.id === params.id);
-        
+        const workoutData =
+          fetchedWorkout || workouts.find((w) => w.id === params.id);
+
         if (workoutData) {
           setWorkout(workoutData);
-          
+
           // Track workout completion event
           trackEvent("workout_completed", {
             workout_id: workoutData.id,
@@ -72,6 +91,7 @@ export default function PostWorkoutPage() {
             completed_at: new Date().toISOString(),
             current_streak: demoUserProgress.currentStreak + 1,
             is_streak_milestone: (demoUserProgress.currentStreak + 1) % 7 === 0,
+            workout_completed_count: 1,
           });
         }
       } catch (error) {
@@ -80,7 +100,7 @@ export default function PostWorkoutPage() {
         const localWorkout = workouts.find((w) => w.id === params.id);
         if (localWorkout) {
           setWorkout(localWorkout);
-          
+
           // Track workout completion event with local data
           trackEvent("workout_completed", {
             workout_id: localWorkout.id,
@@ -94,6 +114,7 @@ export default function PostWorkoutPage() {
             completed_at: new Date().toISOString(),
             current_streak: demoUserProgress.currentStreak + 1,
             is_streak_milestone: (demoUserProgress.currentStreak + 1) % 7 === 0,
+            workout_completed_count: 1,
           });
         }
       }
@@ -205,7 +226,11 @@ export default function PostWorkoutPage() {
           transition={{ delay: 0.5 }}
           className="mb-8"
         >
-          <Card className={`overflow-hidden ${isStreakMilestone ? "ring-2 ring-orange-500" : ""}`}>
+          <Card
+            className={`overflow-hidden ${
+              isStreakMilestone ? "ring-2 ring-orange-500" : ""
+            }`}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -278,8 +303,72 @@ export default function PostWorkoutPage() {
           </motion.div>
         )}
 
-        {/* Sponsored Product Placement */}
-        {placement && (
+        {/* Supplements Section */}
+        {supplements.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mb-8"
+          >
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Recommended Supplements
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {supplements.slice(0, 3).map((supplement, index) => (
+                <motion.div
+                  key={supplement.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
+                  className="h-full"
+                >
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group h-full flex flex-col">
+                    <div className="flex flex-1">
+                      <div className="relative w-1/3 h-[150px] flex-shrink-0">
+                        <Image
+                          src={supplement.imageUrl}
+                          alt={supplement.productName}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <CardContent className="flex-1 p-4 flex flex-col justify-center">
+                        <Badge variant="outline" className="w-fit mb-2 text-xs">
+                          Supplement
+                        </Badge>
+                        <h3 className="font-semibold mb-1 line-clamp-2">
+                          {supplement.productName}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          Refuel your body with premium nutrition
+                        </p>
+                        {supplement.linkUrl ? (
+                          <a
+                            href={supplement.linkUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary font-medium flex items-center gap-1 hover:underline mt-auto"
+                          >
+                            Shop Now <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic mt-auto">
+                            Available soon
+                          </p>
+                        )}
+                      </CardContent>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Fallback: Sponsored Product Placement */}
+        {placement && supplements.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -304,7 +393,9 @@ export default function PostWorkoutPage() {
                   <Badge variant="outline" className="w-fit mb-2 text-xs">
                     {placement.productType}
                   </Badge>
-                  <h3 className="font-semibold mb-1">{placement.productName}</h3>
+                  <h3 className="font-semibold mb-1">
+                    {placement.productName}
+                  </h3>
                   <p className="text-sm text-muted-foreground mb-3">
                     Refuel your body with premium nutrition
                   </p>
@@ -342,9 +433,12 @@ export default function PostWorkoutPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{workouts[1]?.title || "Upper Body Strength"}</p>
+                  <p className="font-medium">
+                    {workouts[1]?.title || "Upper Body Strength"}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {workouts[1]?.duration || 45} min • {workouts[1]?.calories || 280} kcal
+                    {workouts[1]?.duration || 45} min •{" "}
+                    {workouts[1]?.calories || 280} kcal
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -383,4 +477,3 @@ export default function PostWorkoutPage() {
     </div>
   );
 }
-

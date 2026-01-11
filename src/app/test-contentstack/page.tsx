@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getEntry } from "@/lib/contentstack";
+import { getEntry, getAllSupplements } from "@/lib/contentstack";
 
 export default function TestContentstackPage() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [entryId, setEntryId] = useState("blt34dfb57eaeb74da3");
+  const [testType, setTestType] = useState<"entry" | "supplements">("entry");
 
   const handleFetch = async () => {
     setLoading(true);
@@ -17,11 +18,16 @@ export default function TestContentstackPage() {
     setData(null);
 
     try {
-      const result = await getEntry(entryId);
-      setData(result);
+      if (testType === "supplements") {
+        const result = await getAllSupplements();
+        setData(result);
+      } else {
+        const result = await getEntry(entryId);
+        setData(result);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch entry");
-      console.error("Error fetching entry:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch");
+      console.error("Error fetching:", err);
     } finally {
       setLoading(false);
     }
@@ -35,21 +41,41 @@ export default function TestContentstackPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="entryId" className="text-sm font-medium">
-              Entry ID:
-            </label>
-            <input
-              id="entryId"
-              type="text"
-              value={entryId}
-              onChange={(e) => setEntryId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700"
-              placeholder="Enter entry ID"
-            />
+            <label className="text-sm font-medium">Test Type:</label>
+            <div className="flex gap-2">
+              <Button
+                variant={testType === "entry" ? "default" : "outline"}
+                onClick={() => setTestType("entry")}
+              >
+                Single Entry
+              </Button>
+              <Button
+                variant={testType === "supplements" ? "default" : "outline"}
+                onClick={() => setTestType("supplements")}
+              >
+                Supplements
+              </Button>
+            </div>
           </div>
 
-          <Button onClick={handleFetch} disabled={loading || !entryId}>
-            {loading ? "Fetching..." : "Fetch Entry"}
+          {testType === "entry" && (
+            <div className="space-y-2">
+              <label htmlFor="entryId" className="text-sm font-medium">
+                Entry ID:
+              </label>
+              <input
+                id="entryId"
+                type="text"
+                value={entryId}
+                onChange={(e) => setEntryId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700"
+                placeholder="Enter entry ID"
+              />
+            </div>
+          )}
+
+          <Button onClick={handleFetch} disabled={loading || (testType === "entry" && !entryId)}>
+            {loading ? "Fetching..." : testType === "supplements" ? "Fetch Supplements" : "Fetch Entry"}
           </Button>
 
           {error && (

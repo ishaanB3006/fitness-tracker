@@ -21,8 +21,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getWorkout } from "@/cms/client";
 import { formatDuration } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Workout } from "@/cms/types";
+import { trackEvent } from "@/lib/analytics";
 
 export default function WorkoutDetailPage() {
   const params = useParams();
@@ -32,6 +33,7 @@ export default function WorkoutDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
+  const workoutCompletedRef = useRef(false);
 
   useEffect(() => {
     async function fetchWorkout() {
@@ -46,6 +48,14 @@ export default function WorkoutDetailPage() {
         const data = await getWorkout(params.id);
         if (data) {
           setWorkout(data);
+
+          // Track workout viewed event
+          trackEvent("workout_viewed", {
+            workout_id: data.id,
+            workout_title: data.title,
+            workout_difficulty: data.difficulty,
+            workout_duration: data.duration,
+          });
         } else {
           setError("Workout not found");
         }
@@ -59,6 +69,28 @@ export default function WorkoutDetailPage() {
 
     fetchWorkout();
   }, [params.id]);
+
+  // Track when user leaves without completing
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (workout && !workoutCompletedRef.current) {
+        trackEvent("workout_abandoned", {
+          workout_id: workout.id,
+          workout_title: workout.title,
+          exercises_completed: completedExercises.length,
+          total_exercises: workout.exercises.length,
+          workout_abandoned_count: 1,
+        });
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      handleBeforeUnload();
+    };
+  }, [workout, completedExercises]);
 
   if (loading) {
     return (
@@ -91,9 +123,12 @@ export default function WorkoutDetailPage() {
   const progress = (completedExercises.length / workout.exercises.length) * 100;
 
   const difficultyColors = {
-    beginner: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    intermediate: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    advanced: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+    beginner:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    intermediate:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    advanced:
+      "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
   };
 
   return (
@@ -123,7 +158,7 @@ export default function WorkoutDetailPage() {
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        
+
         {/* Overlay Content */}
         <div className="absolute inset-0 p-6 flex flex-col justify-end">
           <div className="flex flex-wrap gap-2 mb-3">
@@ -131,12 +166,18 @@ export default function WorkoutDetailPage() {
               {workout.difficulty}
             </Badge>
             {workout.muscleGroups.map((muscle) => (
-              <Badge key={muscle} variant="secondary" className="bg-white/20 text-white border-0 backdrop-blur-sm capitalize">
+              <Badge
+                key={muscle}
+                variant="secondary"
+                className="bg-white/20 text-white border-0 backdrop-blur-sm capitalize"
+              >
                 {muscle.replace("-", " ")}
               </Badge>
             ))}
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{workout.title}</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+            {workout.title}
+          </h1>
           <div className="flex flex-wrap items-center gap-4 text-white/80">
             <span className="flex items-center gap-1.5">
               <Clock className="h-4 w-4" />
@@ -155,10 +196,18 @@ export default function WorkoutDetailPage() {
 
         {/* Action Buttons */}
         <div className="absolute top-4 right-4 flex gap-2">
-          <Button size="icon" variant="secondary" className="rounded-full bg-white/20 backdrop-blur-sm border-0 hover:bg-white/30">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="rounded-full bg-white/20 backdrop-blur-sm border-0 hover:bg-white/30"
+          >
             <Heart className="h-5 w-5" />
           </Button>
-          <Button size="icon" variant="secondary" className="rounded-full bg-white/20 backdrop-blur-sm border-0 hover:bg-white/30">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="rounded-full bg-white/20 backdrop-blur-sm border-0 hover:bg-white/30"
+          >
             <Share2 className="h-5 w-5" />
           </Button>
         </div>
@@ -229,11 +278,13 @@ export default function WorkoutDetailPage() {
           {workout.exercises.map((exercise, index) => {
             const isCompleted = completedExercises.includes(exercise.id);
             const isExpanded = expandedExercise === exercise.id;
-            
+
             return (
               <Card
                 key={exercise.id}
-                className={`transition-all duration-300 ${isCompleted ? 'bg-primary/5 border-primary/30' : ''}`}
+                className={`transition-all duration-300 ${
+                  isCompleted ? "bg-primary/5 border-primary/30" : ""
+                }`}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
@@ -241,8 +292,8 @@ export default function WorkoutDetailPage() {
                       onClick={() => toggleExercise(exercise.id)}
                       className={`flex-shrink-0 h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
                         isCompleted
-                          ? 'bg-primary border-primary text-white'
-                          : 'border-muted-foreground/30 hover:border-primary'
+                          ? "bg-primary border-primary text-white"
+                          : "border-muted-foreground/30 hover:border-primary"
                       }`}
                     >
                       {isCompleted ? (
@@ -252,31 +303,46 @@ export default function WorkoutDetailPage() {
                       )}
                     </button>
                     <div className="flex-1">
-                      <h3 className={`font-medium ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                      <h3
+                        className={`font-medium ${
+                          isCompleted
+                            ? "line-through text-muted-foreground"
+                            : ""
+                        }`}
+                      >
                         {exercise.name}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         {exercise.sets} sets × {exercise.reps}
-                        {exercise.restSeconds > 0 && ` • ${exercise.restSeconds}s rest`}
+                        {exercise.restSeconds > 0 &&
+                          ` • ${exercise.restSeconds}s rest`}
                       </p>
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setExpandedExercise(isExpanded ? null : exercise.id)}
+                      onClick={() =>
+                        setExpandedExercise(isExpanded ? null : exercise.id)
+                      }
                     >
-                      <ChevronDown className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      <ChevronDown
+                        className={`h-5 w-5 transition-transform ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                      />
                     </Button>
                   </div>
-                  
+
                   {isExpanded && exercise.notes && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
+                      animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       className="mt-4 pt-4 border-t"
                     >
-                      <p className="text-sm text-muted-foreground">{exercise.notes}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {exercise.notes}
+                      </p>
                     </motion.div>
                   )}
                 </CardContent>
@@ -294,30 +360,32 @@ export default function WorkoutDetailPage() {
         className="sticky bottom-24 md:bottom-8 bg-background/80 backdrop-blur-lg py-4 -mx-4 px-4 sm:-mx-6 sm:px-6"
       >
         {progress === 100 ? (
-          <Button 
-            size="xl" 
-            className="w-full" 
+          <Button
+            size="xl"
+            className="w-full"
             variant="gradient"
-            onClick={() => router.push(`/workouts/${workout.id}/complete`)}
+            onClick={() => {
+              workoutCompletedRef.current = true;
+              router.push(`/workouts/${workout.id}/complete`);
+            }}
           >
             <CheckCircle2 className="h-5 w-5 mr-2" />
             Complete Workout
           </Button>
         ) : (
           <div className="flex gap-3">
-            <Button 
-              size="xl" 
-              className="flex-1" 
-              variant="gradient"
-            >
+            <Button size="xl" className="flex-1" variant="gradient">
               <Play className="h-5 w-5 mr-2" />
-              {completedExercises.length > 0 ? 'Continue' : 'Start Workout'}
+              {completedExercises.length > 0 ? "Continue" : "Start Workout"}
             </Button>
             {completedExercises.length > 0 && (
-              <Button 
-                size="xl" 
+              <Button
+                size="xl"
                 variant="outline"
-                onClick={() => router.push(`/workouts/${workout.id}/complete`)}
+                onClick={() => {
+                  workoutCompletedRef.current = true;
+                  router.push(`/workouts/${workout.id}/complete`);
+                }}
               >
                 Finish Early
               </Button>
@@ -328,4 +396,3 @@ export default function WorkoutDetailPage() {
     </div>
   );
 }
-

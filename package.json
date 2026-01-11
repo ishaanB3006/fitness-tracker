@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@contentstack/delivery-sdk": "^4.10.3",
+    "@contentstack/mcp": "^0.3.1",
     "@contentstack/personalize-edge-sdk": "^1.0.19",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -25,7 +27,6 @@
     "@tanstack/react-table": "^8.19.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "@contentstack/delivery-sdk": "^4.10.3",
     "contentstack": "^3.26.2",
     "date-fns": "^3.6.0",
     "firebase": "^12.6.0",

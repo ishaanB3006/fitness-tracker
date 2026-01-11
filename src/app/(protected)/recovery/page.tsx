@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Heart, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { RecoveryCard } from "@/components/shared/RecoveryCard";
 import { recoveries } from "@/cms/data";
 import { RecoveryType, Difficulty } from "@/cms/types";
+import { getRecoveryPrice } from "@/lib/contentstack";
 import { cn } from "@/lib/utils";
 
 const recoveryTypes: RecoveryType[] = ["mental-wellness", "sports-massage", "stretching", "meditation", "breathing", "foam-rolling", "cryotherapy", "sauna"];
@@ -29,6 +30,18 @@ export default function RecoveryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<RecoveryType | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
+  const [bookingPrice, setBookingPrice] = useState<number | null>(null);
+
+  // Fetch booking price from Contentstack once for all bookable recoveries
+  useEffect(() => {
+    const fetchPrice = async () => {
+      const fetchedPrice = await getRecoveryPrice();
+      if (fetchedPrice !== null) {
+        setBookingPrice(fetchedPrice);
+      }
+    };
+    fetchPrice();
+  }, []);
 
   const filteredRecoveries = recoveries.filter((recovery) => {
     const matchesSearch = recovery.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -165,7 +178,12 @@ export default function RecoveryPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {bookableRecoveries.map((recovery, index) => (
-              <RecoveryCard key={recovery.id} recovery={recovery} index={index} />
+              <RecoveryCard 
+                key={recovery.id} 
+                recovery={recovery} 
+                index={index}
+                price={bookingPrice || recovery.price}
+              />
             ))}
           </div>
         </motion.section>

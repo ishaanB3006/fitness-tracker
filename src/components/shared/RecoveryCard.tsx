@@ -12,9 +12,12 @@ interface RecoveryCardProps {
   recovery: Recovery;
   index?: number;
   compact?: boolean;
+  price?: number | null;
 }
 
-export function RecoveryCard({ recovery, index = 0, compact = false }: RecoveryCardProps) {
+export function RecoveryCard({ recovery, index = 0, compact = false, price }: RecoveryCardProps) {
+  // Use provided price or fallback to recovery.price
+  const displayPrice = price !== undefined ? price : recovery.price;
   const typeColors: Record<string, string> = {
     "mental-wellness": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
     "sports-massage": "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
@@ -105,8 +108,8 @@ export function RecoveryCard({ recovery, index = 0, compact = false }: RecoveryC
             </div>
             <div className="absolute bottom-3 left-3 right-3">
               <h3 className="font-bold text-white text-lg">{recovery.title}</h3>
-              {recovery.price && (
-                <p className="text-white/90 text-sm mt-1">${recovery.price} per session</p>
+              {displayPrice && (
+                <p className="text-white/90 text-sm mt-1">${displayPrice} per session</p>
               )}
             </div>
           </div>
@@ -124,9 +127,9 @@ export function RecoveryCard({ recovery, index = 0, compact = false }: RecoveryC
                   <Heart className="h-4 w-4 text-rose-500" />
                   {recovery.benefits.length} benefits
                 </span>
-                {recovery.price && (
+                {displayPrice && (
                   <Badge variant="outline" className="text-sm font-semibold">
-                    ${recovery.price}
+                    ${displayPrice}
                   </Badge>
                 )}
               </div>

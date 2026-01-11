@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -21,9 +21,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { recoveries } from "@/cms/data";
 import { format } from "date-fns";
+import { getRecoveryPrice } from "@/lib/contentstack";
+import { getActiveVariant, getPersonalizeInstance } from "@/lib/personalize";
 
 const typeColors: Record<string, string> = {
-  cryotherapy: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
+  cryotherapy:
+    "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
   sauna: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
@@ -37,7 +40,9 @@ const generateTimeSlots = () => {
   const slots = [];
   for (let hour = 8; hour < 20; hour++) {
     for (let minute of [0, 30]) {
-      const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+      const time = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}`;
       slots.push(time);
     }
   }
@@ -54,13 +59,32 @@ export default function BookingPage() {
   const [phone, setPhone] = useState<string>("");
   const [isBooking, setIsBooking] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
+  const [price, setPrice] = useState<number | null>(null);
 
   const recovery = recoveries.find((r) => r.id === params.id);
+
+  // Fetch price from Contentstack and get active variant
+  useEffect(() => {
+    const fetchPrice = async () => {
+      // Get active variant for personalization
+
+      const fetchedPrice = await getRecoveryPrice();
+      if (fetchedPrice !== null) {
+        setPrice(fetchedPrice);
+      } else if (recovery?.price) {
+        // Fallback to static data if Contentstack fetch fails
+        setPrice(recovery.price);
+      }
+    };
+    fetchPrice();
+  }, [recovery?.price]);
 
   if (!recovery || !recovery.requiresBooking) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Service not available for booking</h1>
+        <h1 className="text-2xl font-bold mb-4">
+          Service not available for booking
+        </h1>
         <Button onClick={() => router.back()}>Go back</Button>
       </div>
     );
@@ -68,7 +92,10 @@ export default function BookingPage() {
 
   const timeSlots = generateTimeSlots();
   const minDate = format(new Date(), "yyyy-MM-dd");
-  const maxDate = format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"); // 30 days from now
+  const maxDate = format(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    "yyyy-MM-dd"
+  ); // 30 days from now
 
   const handleBooking = async () => {
     if (!selectedDate || !selectedTime || !name || !email || !phone) {
@@ -76,9 +103,29 @@ export default function BookingPage() {
     }
 
     setIsBooking(true);
-    
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    try {
+      // Trigger Contentstack automation
+      await fetch(
+        "https://app.contentstack.com/automations-api/run/d07f2306e36c490b9a58e3e111476237",
+        {
+          method: "POST",
+          headers: {
+            "ah-http-key": "O3!xcwlqrieao",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            date: `${selectedDate} ${selectedTime}`,
+            name: name,
+            price: (price || recovery.price || 0).toString(),
+          }),
+        }
+      );
+    } catch (error) {
+      console.error("Failed to trigger booking automation:", error);
+    }
+
     setIsBooking(false);
     setIsBooked(true);
   };
@@ -105,7 +152,9 @@ export default function BookingPage() {
                   <Calendar className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Date</p>
-                    <p className="font-semibold">{format(new Date(selectedDate), "EEEE, MMMM d, yyyy")}</p>
+                    <p className="font-semibold">
+                      {format(new Date(selectedDate), "EEEE, MMMM d, yyyy")}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -115,12 +164,12 @@ export default function BookingPage() {
                     <p className="font-semibold">{selectedTime}</p>
                   </div>
                 </div>
-                {recovery.price && (
+                {price && (
                   <div className="flex items-center gap-3">
                     <DollarSign className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-sm text-muted-foreground">Total</p>
-                      <p className="font-semibold">${recovery.price}</p>
+                      <p className="font-semibold">${price}</p>
                     </div>
                   </div>
                 )}
@@ -131,9 +180,7 @@ export default function BookingPage() {
             <Button variant="outline" onClick={() => router.push("/recovery")}>
               View All Services
             </Button>
-            <Button onClick={() => router.push("/")}>
-              Back to Home
-            </Button>
+            <Button onClick={() => router.push("/")}>Back to Home</Button>
           </div>
         </motion.div>
       </div>
@@ -169,13 +216,17 @@ export default function BookingPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
           <div className="absolute inset-0 p-6 flex flex-col justify-end">
-            <Badge className={`${typeColors[recovery.type] || typeColors.cryotherapy} w-fit mb-2`}>
+            <Badge
+              className={`${
+                typeColors[recovery.type] || typeColors.cryotherapy
+              } w-fit mb-2`}
+            >
               {typeLabels[recovery.type] || recovery.type}
             </Badge>
-            <h1 className="text-3xl font-bold text-white mb-2">{recovery.title}</h1>
-            {recovery.price && (
-              <p className="text-white/90">${recovery.price} per session</p>
-            )}
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {recovery.title}
+            </h1>
+            {price && <p className="text-white/90">${price} per session</p>}
           </div>
         </div>
       </motion.div>
@@ -290,7 +341,9 @@ export default function BookingPage() {
               {selectedDate && (
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Date</p>
-                  <p className="font-semibold">{format(new Date(selectedDate), "MMM d, yyyy")}</p>
+                  <p className="font-semibold">
+                    {format(new Date(selectedDate), "MMM d, yyyy")}
+                  </p>
                 </div>
               )}
               {selectedTime && (
@@ -299,11 +352,11 @@ export default function BookingPage() {
                   <p className="font-semibold">{selectedTime}</p>
                 </div>
               )}
-              {recovery.price && (
+              {price && (
                 <div className="pt-4 border-t">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">Total</p>
-                    <p className="text-xl font-bold">${recovery.price}</p>
+                    <p className="text-xl font-bold">${price}</p>
                   </div>
                 </div>
               )}
@@ -311,7 +364,14 @@ export default function BookingPage() {
                 size="lg"
                 className="w-full"
                 onClick={handleBooking}
-                disabled={!selectedDate || !selectedTime || !name || !email || !phone || isBooking}
+                disabled={
+                  !selectedDate ||
+                  !selectedTime ||
+                  !name ||
+                  !email ||
+                  !phone ||
+                  isBooking
+                }
               >
                 {isBooking ? "Processing..." : "Confirm Booking"}
               </Button>
@@ -325,4 +385,3 @@ export default function BookingPage() {
     </div>
   );
 }
-

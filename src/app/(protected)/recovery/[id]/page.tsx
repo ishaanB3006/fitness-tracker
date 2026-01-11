@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { recoveries } from "@/cms/data";
-import { useState } from "react";
+import { getRecoveryPrice } from "@/lib/contentstack";
+import { useState, useEffect } from "react";
 
 const typeColors: Record<string, string> = {
   "mental-wellness": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
@@ -51,8 +52,25 @@ export default function RecoveryDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(false);
+  const [price, setPrice] = useState<number | null>(null);
 
   const recovery = recoveries.find((r) => r.id === params.id);
+
+  // Fetch price from Contentstack to ensure consistency
+  useEffect(() => {
+    const fetchPrice = async () => {
+      if (recovery?.requiresBooking) {
+        const fetchedPrice = await getRecoveryPrice();
+        if (fetchedPrice !== null) {
+          setPrice(fetchedPrice);
+        } else if (recovery?.price) {
+          // Fallback to static data if Contentstack fetch fails
+          setPrice(recovery.price);
+        }
+      }
+    };
+    fetchPrice();
+  }, [recovery?.requiresBooking, recovery?.price]);
 
   if (!recovery) {
     return (
@@ -111,10 +129,10 @@ export default function RecoveryDetailPage() {
               <Heart className="h-4 w-4" />
               {recovery.benefits.length} benefits
             </span>
-            {recovery.price && (
+            {(price || recovery.price) && (
               <span className="flex items-center gap-1.5">
                 <DollarSign className="h-4 w-4" />
-                ${recovery.price} per session
+                ${price || recovery.price} per session
               </span>
             )}
           </div>
@@ -214,10 +232,10 @@ export default function RecoveryDetailPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     This service requires a scheduled appointment. Book your session to ensure availability and professional supervision.
                   </p>
-                  {recovery.price && (
+                  {(price || recovery.price) && (
                     <div className="flex items-center gap-2 text-sm">
                       <DollarSign className="h-4 w-4 text-primary" />
-                      <span className="font-semibold">${recovery.price}</span>
+                      <span className="font-semibold">${price || recovery.price}</span>
                       <span className="text-muted-foreground">per session</span>
                     </div>
                   )}

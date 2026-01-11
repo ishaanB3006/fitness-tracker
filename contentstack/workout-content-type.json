@@ -344,9 +344,7 @@
     "options": {
       "is_page": false,
       "singleton": false,
-      "sub_title": [
-        "title"
-      ],
+      "sub_title": ["title"],
       "title": "title",
       "publishable": true,
       "is_composite": false,
@@ -355,4 +353,3 @@
     "last_activity": {}
   }
 }
-
