@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"cms/client.ts -> @/lib/contentstack":{"id":24094,"files":["static/chunks/e37a0b60-70bbcd6b3bc795d5.js","static/chunks/6081-30d4dbfce5f276c6.js","static/chunks/9525-acca6af235e36b79.js"]}}';
+self.__REACT_LOADABLE_MANIFEST="{\"cms/client.ts -> @/lib/contentstack\":{\"id\":\"cms/client.ts -> @/lib/contentstack\",\"files\":[\"static/chunks/_app-pages-browser_src_lib_contentstack_ts.js\"]}}"

@@ -1,25 +1,7 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/test-contentstack/page": "app/test-contentstack/page.js",
   "/login/page": "app/login/page.js",
-  "/test-personalize/page": "app/test-personalize/page.js",
   "/page": "app/page.js",
-  "/(protected)/meals/page": "app/(protected)/meals/page.js",
-  "/(protected)/profile/page": "app/(protected)/profile/page.js",
-  "/(protected)/meals/[id]/page": "app/(protected)/meals/[id]/page.js",
-  "/(protected)/progress/page": "app/(protected)/progress/page.js",
   "/(protected)/workouts/page": "app/(protected)/workouts/page.js",
-  "/(protected)/planner/page": "app/(protected)/planner/page.js",
-  "/(protected)/workouts/[id]/page": "app/(protected)/workouts/[id]/page.js",
-  "/(protected)/workouts/[id]/complete/page": "app/(protected)/workouts/[id]/complete/page.js",
-  "/(protected)/recovery/[id]/book/page": "app/(protected)/recovery/[id]/book/page.js",
-  "/admin/coupons/page": "app/admin/coupons/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/admin/campaigns/page": "app/admin/campaigns/page.js",
   "/(protected)/recovery/page": "app/(protected)/recovery/page.js",
-  "/(protected)/recovery/[id]/page": "app/(protected)/recovery/[id]/page.js",
-  "/admin/challenges/page": "app/admin/challenges/page.js",
-  "/admin/placements/page": "app/admin/placements/page.js",
-  "/(protected)/page": "app/(protected)/page.js",
-  "/admin/analytics/page": "app/admin/analytics/page.js"
+  "/(protected)/meals/page": "app/(protected)/meals/page.js"
 }
