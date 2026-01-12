@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { recoveries } from "@/cms/data";
 import { format } from "date-fns";
 import { getRecoveryPrice } from "@/lib/contentstack";
-import { getActiveVariant, getPersonalizeInstance } from "@/lib/personalize";
+import { getPersonalizeInstance } from "@/lib/personalize";
 
 const typeColors: Record<string, string> = {
   cryotherapy:

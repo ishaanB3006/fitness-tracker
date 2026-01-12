@@ -38,8 +38,16 @@ const processEventQueue = () => {
     try {
       if (eventStream === "pageView") {
         window.jstag.pageView();
+        if (properties) {
+          window.jstag.send({
+            eventName: "pageView",
+            timestamp: new Date().toISOString(),
+            ...properties,
+          });
+        }
       } else {
-        window.jstag.send(eventStream, {
+        window.jstag.send({
+          eventName: eventStream,
           timestamp: new Date().toISOString(),
           ...properties,
         });
@@ -105,8 +113,10 @@ export const trackPageView = (
     try {
       window.jstag.pageView();
       if (pageName || properties) {
-        window.jstag.send("pageView", {
+        window.jstag.send({
+          eventName: "pageView",
           page: pageName,
+          timestamp: new Date().toISOString(),
           ...properties,
         });
       }

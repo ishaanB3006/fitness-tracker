@@ -42,7 +42,9 @@ export default function TestPersonalizePage() {
       }
     } catch (err) {
       setStatus("error");
-      addLog(`❌ Error: ${err instanceof Error ? err.message : "Unknown error"}`);
+      addLog(
+        `❌ Error: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
     } finally {
       setLoading(false);
     }
@@ -57,7 +59,7 @@ export default function TestPersonalizePage() {
 
   const handleGetVariants = () => {
     addLog("Fetching variant aliases...");
-    const vars = getVariantAliases();
+    const vars = getVariantAliases() ?? [];
     setVariants(vars);
     addLog(`🏷️ Found ${vars.length} variant alias(es)`);
   };
@@ -65,13 +67,17 @@ export default function TestPersonalizePage() {
   const handleSetAttribute = async () => {
     addLog(`Setting attribute: ${attributeKey} = ${attributeValue}`);
     try {
-      const parsedValue = isNaN(Number(attributeValue)) 
-        ? attributeValue 
+      const parsedValue = isNaN(Number(attributeValue))
+        ? attributeValue
         : Number(attributeValue);
       await setUserAttributes({ [attributeKey]: parsedValue });
       addLog(`✅ Attribute set successfully`);
     } catch (err) {
-      addLog(`❌ Error setting attribute: ${err instanceof Error ? err.message : "Unknown error"}`);
+      addLog(
+        `❌ Error setting attribute: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -81,7 +87,11 @@ export default function TestPersonalizePage() {
       await triggerPersonalizeEvent(eventKey);
       addLog(`✅ Event triggered successfully`);
     } catch (err) {
-      addLog(`❌ Error triggering event: ${err instanceof Error ? err.message : "Unknown error"}`);
+      addLog(
+        `❌ Error triggering event: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -131,7 +141,11 @@ export default function TestPersonalizePage() {
           </div>
 
           <p className="text-sm text-gray-500">
-            Make sure <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">NEXT_PUBLIC_PERSONALIZE_PROJECT_UID</code> is set in your environment.
+            Make sure{" "}
+            <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">
+              NEXT_PUBLIC_PERSONALIZE_PROJECT_UID
+            </code>{" "}
+            is set in your environment.
           </p>
         </CardContent>
       </Card>
@@ -142,10 +156,18 @@ export default function TestPersonalizePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleGetExperiences} disabled={status !== "connected"}>
+            <Button
+              variant="outline"
+              onClick={handleGetExperiences}
+              disabled={status !== "connected"}
+            >
               Get Experiences
             </Button>
-            <Button variant="outline" onClick={handleGetVariants} disabled={status !== "connected"}>
+            <Button
+              variant="outline"
+              onClick={handleGetVariants}
+              disabled={status !== "connected"}
+            >
               Get Variant Aliases
             </Button>
           </div>
@@ -164,7 +186,10 @@ export default function TestPersonalizePage() {
               <h4 className="font-semibold text-sm">Variant Aliases:</h4>
               <div className="flex flex-wrap gap-2">
                 {variants.map((v) => (
-                  <span key={v} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-sm">
+                  <span
+                    key={v}
+                    className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-sm"
+                  >
                     {v}
                   </span>
                 ))}
@@ -200,7 +225,10 @@ export default function TestPersonalizePage() {
                 placeholder="Value"
               />
             </div>
-            <Button onClick={handleSetAttribute} disabled={status !== "connected"}>
+            <Button
+              onClick={handleSetAttribute}
+              disabled={status !== "connected"}
+            >
               Set Attribute
             </Button>
           </div>
@@ -223,7 +251,10 @@ export default function TestPersonalizePage() {
                 placeholder="Event key (e.g., clickCTA)"
               />
             </div>
-            <Button onClick={handleTriggerEvent} disabled={status !== "connected"}>
+            <Button
+              onClick={handleTriggerEvent}
+              disabled={status !== "connected"}
+            >
               Trigger Event
             </Button>
           </div>
@@ -237,7 +268,9 @@ export default function TestPersonalizePage() {
         <CardContent>
           <div className="h-64 overflow-auto bg-gray-50 dark:bg-gray-900 rounded-md p-3 font-mono text-sm space-y-1">
             {logs.length === 0 ? (
-              <p className="text-gray-400">No activity yet. Initialize the SDK to start.</p>
+              <p className="text-gray-400">
+                No activity yet. Initialize the SDK to start.
+              </p>
             ) : (
               logs.map((log, i) => (
                 <div key={i} className="text-gray-700 dark:text-gray-300">
@@ -261,4 +294,3 @@ export default function TestPersonalizePage() {
     </div>
   );
 }
-
