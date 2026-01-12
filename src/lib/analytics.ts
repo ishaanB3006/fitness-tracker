@@ -58,9 +58,38 @@ const processEventQueue = () => {
   }
 };
 
+// Track if SDK ready check is already running
+let checkSDKReadyInterval: NodeJS.Timeout | null = null;
+
+// Check if SDK is ready periodically and process queue (fallback)
+const startSDKReadyCheck = () => {
+  if (typeof window === "undefined" || checkSDKReadyInterval) return;
+
+  checkSDKReadyInterval = setInterval(() => {
+    if (window.jstag) {
+      processEventQueue();
+      if (checkSDKReadyInterval) {
+        clearInterval(checkSDKReadyInterval);
+        checkSDKReadyInterval = null;
+      }
+    }
+  }, 100);
+
+  // Stop checking after 10 seconds
+  setTimeout(() => {
+    if (checkSDKReadyInterval) {
+      clearInterval(checkSDKReadyInterval);
+      checkSDKReadyInterval = null;
+    }
+  }, 10000);
+};
+
 // Initialize Lytics
 export const initLytics = () => {
   if (typeof window === "undefined") return;
+
+  // Start the SDK ready check
+  startSDKReadyCheck();
 
   if (!window.jstag) {
     // Create initialization script using eval to avoid TypeScript issues with minified code
@@ -87,19 +116,6 @@ export const initLytics = () => {
     document.head.appendChild(initScript);
   }
 };
-
-// Check if SDK is ready periodically and process queue (fallback)
-if (typeof window !== "undefined") {
-  const checkSDKReady = setInterval(() => {
-    if (window.jstag) {
-      processEventQueue();
-      clearInterval(checkSDKReady);
-    }
-  }, 100);
-
-  // Stop checking after 10 seconds
-  setTimeout(() => clearInterval(checkSDKReady), 10000);
-}
 
 // Track page view
 export const trackPageView = (
