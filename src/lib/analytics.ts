@@ -1,6 +1,10 @@
 // =============================================================================
 // Lytics Analytics Integration
 // =============================================================================
+// Note: This file contains client-side code but does NOT use "use client" directive
+// because "use client" is only for React components, not utility files.
+// All functions properly guard against SSR with typeof window checks.
+// =============================================================================
 
 // TypeScript declarations for jstag
 declare global {
@@ -59,7 +63,7 @@ const processEventQueue = () => {
 };
 
 // Track if SDK ready check is already running
-let checkSDKReadyInterval: NodeJS.Timeout | null = null;
+let checkSDKReadyInterval: ReturnType<typeof setInterval> | null = null;
 
 // Check if SDK is ready periodically and process queue (fallback)
 const startSDKReadyCheck = () => {

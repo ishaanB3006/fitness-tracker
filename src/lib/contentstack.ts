@@ -1,7 +1,4 @@
-import contentstack from "@contentstack/delivery-sdk";
 import { Workout, Exercise, MealPlan, Meal, Macros } from "@/cms/types";
-
-let stack: ReturnType<typeof contentstack.stack> | null = null;
 
 function getConfig() {
   return {
@@ -35,54 +32,32 @@ function getWorkoutVariantAlias(): string | null {
   return localStorage.getItem("cs_variant_alias_wk");
 }
 
-export function initContentstack() {
-  const { apiKey, deliveryToken, environment } = getConfig();
-  // Debug: This log is to check if initContentstack() is called.
-  console.debug("[contentstack] initContentstack() called", {
-    apiKey,
-    deliveryToken,
-    environment,
-  });
-
-  if (!apiKey || !deliveryToken || !environment) {
-    console.error(
-      "Contentstack configuration missing. Check environment variables."
-    );
-    stack = null;
-    return null;
-  }
-
-  try {
-    stack = contentstack.stack({
-      apiKey,
-      deliveryToken,
-      environment,
-    });
-    console.info("Contentstack stack initialized successfully.");
-    return stack;
-  } catch (err) {
-    console.error("Failed to initialize Contentstack stack:", err);
-    stack = null;
-    return null;
-  }
-}
-
-// Initialize and export the stack at module load time
-// This executes when the module is first imported
-
+// Fetch a single entry using REST API
 export const getEntry = async (entryId: string) => {
-  if (!contentstackStack) {
-    throw new Error("Contentstack stack not initialized");
+  const config = getConfig();
+
+  if (!config.apiKey || !config.deliveryToken || !config.environment) {
+    throw new Error("Contentstack configuration missing");
   }
 
-  const result = await contentstackStack
-    .contentType("workout")
-    .entry(entryId)
-    .includeReference(["exercises.exercise"])
-    .fetch<any>();
+  const baseUrl = `https://cdn.contentstack.io/v3/content_types/workout/entries/${entryId}`;
+  const response = await fetch(
+    `${baseUrl}?environment=${config.environment}&include[]=exercises.exercise`,
+    {
+      headers: {
+        api_key: config.apiKey,
+        access_token: config.deliveryToken,
+      },
+    }
+  );
 
+  if (!response.ok) {
+    throw new Error(`Failed to fetch entry: ${response.statusText}`);
+  }
+
+  const result = await response.json();
   console.log(result);
-  return result;
+  return result?.entry;
 };
 
 export const getAllWorkouts = async (): Promise<Workout[]> => {
@@ -822,10 +797,4 @@ export const getAllSupplements = async (): Promise<Supplement[]> => {
   }
 };
 
-export const contentstackStack = initContentstack();
-
-// Log to confirm module execution
-console.debug(
-  "[contentstack] Module loaded, stack initialized:",
-  contentstackStack !== null
-);
+// Note: All functions use the REST API directly for SSR compatibility
