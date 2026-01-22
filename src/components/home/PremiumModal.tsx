@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { trackEvent } from "@/lib/analytics";
 
 interface PremiumModalProps {
   open: boolean;
@@ -62,6 +63,13 @@ export function PremiumModal({ open, onOpenChange }: PremiumModalProps) {
     if (!email || !name) return;
 
     setIsSubmitting(true);
+
+    // Track premium subscription event to Lytics
+    trackEvent("premium_subscription", {
+      email: email,
+      premium_users: true,
+      name: name,
+    });
 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));

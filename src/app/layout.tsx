@@ -7,8 +7,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LyticsScript } from "@/components/analytics/LyticsScript";
 import { PersonalizeScript } from "@/components/analytics/PersonalizeScript";
 
-// Initialize Contentstack - side-effect import ensures module executes
-import "../lib/contentstack";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-geist-sans",
